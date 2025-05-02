@@ -1,0 +1,65 @@
+﻿@{
+    ViewData["Title"] = "API Key Validation";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Key Validation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container" style="max-width: 400px; margin-top: 100px;">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">API Key Validation</h2>
+                <div id="errorMessage" class="alert alert-danger d-none"></div>
+
+                <form id="apiKeyForm">
+                    <div class="mb-3">
+                        <label for="apiKeyInput" class="form-label">Enter Your API Key</label>
+                        <input type="text" id="apiKeyInput" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#apiKeyForm').on('submit', function(e) {
+                e.preventDefault();
+
+                const apiKey = $('#apiKeyInput').val().trim();
+                if (!apiKey) {
+                    $('#errorMessage').removeClass('d-none').text('API key is required');
+                    return;
+                }
+
+                $.ajax({
+                    url: '/Home/GetTokens',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ apiKey: apiKey }),
+                    success: function(response) {
+                        if (response.success) {
+                            window.location.href = '/Home/Index';
+                        } else {
+                            $('#errorMessage').removeClass('d-none').text(response.error);
+                        }
+                    },
+                    error: function() {
+                        $('#errorMessage')
+                            .removeClass('d-none')
+                            .text('An error occurred while validating the API key');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+﻿@model WebappTASK2.Models.Employee
+
+@{
+    ViewData["Title"] = "Edit Employee";
+}
+
+<h1>Edit Employee</h1>
+
+<h4>Employee Details</h4>
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form id="editForm">
+            <div id="validationSummary" class="text-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="Id" class="control-label"></label>
+                <input id="Id" asp-for="Id" class="form-control" readonly />
+            </div>
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input id="Name" asp-for="Name" class="form-control" />
+                <span id="Name-error" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Gender" class="control-label"></label>
+                <input id="Gender" asp-for="Gender" class="form-control" />
+                <span id="Gender-error" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Age" class="control-label"></label>
+                <input id="Age" asp-for="Age" class="form-control" />
+                <span id="Age-error" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Designation" class="control-label"></label>
+                <input id="Designation" asp-for="Designation" class="form-control" />
+                <span id="Designation-error" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="City" class="control-label"></label>
+                <input id="City" asp-for="City" class="form-control" />
+                <span id="City-error" class="text-danger"></span>
+            </div>
+       @*      <div class="form-group">
+                <label asp-for="Institute" class="control-label"></label>
+                <input id="Institute" asp-for="Institute" class="form-control" />
+                <span id="Institute-error" class="text-danger"></span>
+            </div> *@
+            <div class="form-group">
+                <label asp-for="Date_Of_Joining" class="control-label"></label>
+                <input id="Date_Of_Joining" class="form-control" />
+            </div>
+            <div class="form-group">
+                <button type="button" id="saveButton" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function () {
+            // Prepopulate form fields with employee data
+            $("#Name").val('@Model.Name');
+            $("#Gender").val('@Model.Gender');
+            $("#Age").val('@Model.Age');
+            $("#Designation").val('@Model.Designation');
+            $("#City").val('@Model.City');
+            $("#Date_Of_Joining").val('@Model.Date_Of_Joining');
+
+            $("#saveButton").click(function (event) {
+                event.preventDefault();
+
+                // Clear previous validation messages
+                $("#validationSummary").empty();
+                $(".text-danger").text("");
+
+                // Collect form data
+                var formData = {
+                    id: $("#Id").val(),
+                     name: $("#Name").val(),
+                    gender: $("#Gender").val(),
+                    age: $("#Age").val(),
+                    designation: $("#Designation").val(),
+                    city: $("#City").val(),
+                    // institute: $("#Institute").val(),
+                    date_Of_Joining: $("#Date_Of_Joining").val()
+                };
+
+                // Validation checks
+                var isValid = true;
+                var validationMessages = [];
+
+                // Check if Name is empty
+                if (!formData.Name) {
+                    isValid = false;
+                    validationMessages.push("Name is required.");
+                }
+
+                // Check if Age is a number and greater than 0
+                if (!formData.Age || isNaN(formData.Age) || formData.Age <= 0) {
+                    isValid = false;
+                    validationMessages.push("Age must be a valid number greater than 0.");
+                }
+
+                console.log(JSON.stringify(formData));
+                // AJAX request to update employee
+                $.ajax({
+                    url: '/Home/Edit', // Ensure this matches the controller's route
+                    type: 'POST',
+                    data: formData,
+                    success: function (response) {
+                        if (response.success) {
+                           // alert(response.message); // Success message
+                           Swal.fire({
+  position: "top-end",
+  icon: "success",
+  title: "Your work has been saved",
+  showConfirmButton: false,
+  timer: 1500
+});
+                            //window.location.href = '/Home/Index'; // Redirect to the index page
+                        } else {
+                            // Display validation errors from the server
+                            $("#validationSummary").text(response.message); // Display error message
+                        }
+                    },
+                    error: function (xhr) {
+                        console.log(xhr)
+                    }
+                });
+            });
+        });
+    </script>
+}

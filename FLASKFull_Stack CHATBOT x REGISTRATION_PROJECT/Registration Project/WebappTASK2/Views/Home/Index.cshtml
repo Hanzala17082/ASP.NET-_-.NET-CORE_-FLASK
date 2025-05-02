@@ -1,0 +1,137 @@
+﻿@model IEnumerable<WebappTASK2.Models.Employee>
+
+<div class="container">
+    <h1 class="my-4">Employee List</h1>
+
+    <p>
+        <a asp-action="Create" class="btn btn-primary">Create New</a>
+    </p>
+
+    <table class="table table-striped" id="Employees">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Gender</th>
+                <th>Age</th>
+                <th>Designation</th>
+                <th>City</th>
+                <th>Date of Joining</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data will be loaded here using AJAX -->
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function () {
+            function loadEmployees() {
+                $.ajax({
+                    url: '/Home/GetEmployees',
+                    type: 'GET',
+              
+                    success: function (data) {
+                        var rows = '';
+                        $.each(data, function (index, employee) {
+                            // Create a details string for tooltip
+                            var detailsTooltip = `
+                                Name: ${employee.name}
+                                Gender: ${employee.gender}
+                                Age: ${employee.age}
+                                Designation: ${employee.designation}
+                                City: ${employee.city}o
+                                Date of Joining: ${employee.date_Of_Joining}
+                            `;
+
+                            rows += `
+                                <tr>
+                                    <td>${employee.id}</td>
+                                    <td>
+                                        <span 
+                                            data-bs-toggle="tooltip" 
+                                            data-bs-placement="right" 
+                                            title="${detailsTooltip}" 
+                                            class="employee-details"
+                                        >
+                                            ${employee.name}
+                                        </span>
+                                    </td>
+                                    <td>${employee.gender}</td>
+                                    <td>${employee.age}</td>
+                                    <td>${employee.designation}</td>
+                                    <td>${employee.city}</td>
+                                    <td>${employee.date_Of_Joining}</td>
+                                    <td>
+                                        <a href="/Home/Edit/${employee.id}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                        <button class="btn btn-sm btn-outline-danger delete-employee" data-id="${employee.id}">Delete</button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        $('#Employees tbody').html(rows);
+
+                        // Initialize tooltips
+                        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                            return new bootstrap.Tooltip(tooltipTriggerEl)
+                        });
+
+                        // Attach delete event handler
+                        $('.delete-employee').on('click', function () {
+                            var employeeId = $(this).data('id');
+                            Swal.fire({
+                                title: 'Are you sure?',
+                                text: 'You won\'t be able to revert this!',
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonColor: '#3085d6',
+                                cancelButtonColor: '#d33',
+                                confirmButtonText: 'Yes, delete it!'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    $.ajax({
+                                        url: '/Home/Delete/' + employeeId,
+                                        type: 'POST',
+                                         data: formData,
+                                        success: function () {
+                                            loadEmployees(); // Reload the list
+                                            Swal.fire(
+                                                'Deleted!',
+                                                'Employee has been deleted.',
+                                                'success'
+                                            );
+                                        },
+                                        error: function () {
+                                            Swal.fire(
+                                                'Error!',
+                                                'There was a problem deleting the employee.',
+                                                'error'
+                                            );
+                                        }
+                                    });
+                                }
+                            });
+                        });
+                    },
+                    error: function () {
+                        Swal.fire(
+                            'Error!',
+                            'Failed to load employees.',
+                            'error'
+                        );
+                    }
+                });
+            }
+
+            // Initial load
+            loadEmployees();
+        });
+    </script>
+}

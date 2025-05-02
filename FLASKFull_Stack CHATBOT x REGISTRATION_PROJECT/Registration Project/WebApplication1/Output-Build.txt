@@ -1,0 +1,11 @@
+﻿Build started at 6:04 PM...
+1>------ Build started: Project: WebApplication1, Configuration: Debug Any CPU ------
+1>D:\programming\internshipwork\Registration Project\WebApplication1\WebApplication1.csproj : warning NU1903: Package 'System.Data.SqlClient' 4.8.5 has a known high severity vulnerability, https://github.com/advisories/GHSA-98g6-xh36-x2p7
+1>D:\programming\internshipwork\Registration Project\WebApplication1\Models\Employees.cs(31,45,31,52): warning CS8765: Nullability of type of parameter 'value' doesn't match overridden member (possibly because of nullability attributes).
+1>D:\programming\internshipwork\Registration Project\WebApplication1\Models\Employees.cs(12,23,12,27): warning CS8618: Non-nullable property 'Name' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+1>D:\programming\internshipwork\Registration Project\WebApplication1\Models\Employees.cs(19,23,19,29): warning CS8618: Non-nullable property 'Gender' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+1>D:\programming\internshipwork\Registration Project\WebApplication1\Models\Employees.cs(38,20,38,44): warning CS8603: Possible null reference return.
+1>WebApplication1 -> D:\programming\internshipwork\Registration Project\WebApplication1\bin\Debug\net6.0\WebApplication1.dll
+1>Done building project "WebApplication1.csproj".
+========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========
+========== Build completed at 6:04 PM and took 04.256 seconds ==========

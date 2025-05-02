@@ -1,0 +1,538 @@
+﻿@model List<WebApplication1.Models.Employees>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Employee Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Your existing CSS remains unchanged */
+        #ai-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+            #ai-button:hover {
+                background-color: #0056b3;
+            }
+
+        .chatbot-container {
+            display: none;
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 350px;
+            height: 500px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            flex-direction: column;
+        }
+
+        .chatbot-header {
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chatbot-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .chatbot-footer {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+        }
+
+            .chatbot-footer input {
+                flex: 1;
+                padding: 10px;
+                border-radius: 5px;
+                border: 1px solid #ddd;
+            }
+
+            .chatbot-footer button {
+                margin-left: 10px;
+                padding: 10px;
+                border-radius: 5px;
+                border: none;
+                background-color: #007bff;
+                color: white;
+                cursor: pointer;
+            }
+
+                .chatbot-footer button:hover {
+                    background-color: #0056b3;
+                }
+
+        .chatbot-message {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+            .chatbot-message.bot .avatar {
+                color: #007bff;
+            }
+
+            .chatbot-message.you .avatar {
+                color: #28a745;
+            }
+
+            .chatbot-message .avatar {
+                font-size: 24px;
+                margin-right: 10px;
+            }
+
+            .chatbot-message .message {
+                background-color: #f1f1f1;
+                padding: 10px;
+                border-radius: 5px;
+            }
+
+            .chatbot-message.bot .message {
+                background-color: #e9f5ff;
+            }
+
+            .chatbot-message .download-link {
+                margin-top: 8px;
+                display: block;
+            }
+
+        .typing-indicator {
+            display: none;
+            justify-content: space-around;
+        }
+
+            .typing-indicator .dot {
+                width: 8px;
+                height: 8px;
+                background-color: #007bff;
+                border-radius: 50%;
+                animation: typing 1.5s infinite ease-in-out;
+            }
+
+        @@keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .typing-indicator .dot:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .typing-indicator .dot:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+            .pagination a {
+                margin: 0 5px;
+            }
+    </style>
+</head>
+<body class="bg-light">
+    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+    {
+        <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+    }
+    <div class="container mt-4">
+        <!-- Your existing HTML for the employee table remains unchanged -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Employee Management System</h2>
+            <div>
+                <a href="@Url.Action("Create", "Home")" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Add New Employee
+                </a>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body search-box">
+                <form method="get" action="@Url.Action("Search", "Home")" class="row g-3">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" name="searchName" class="form-control" placeholder="Search by name..."
+                                   value="@Context.Request.Query["searchName"]" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                        <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">
+                            <i class="fas fa-undo"></i> Reset
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>
+                                    <a href="@Url.Action("Search", "Home", new {
+                                        searchName = Context.Request.Query["searchName"],
+                                        sortColumn = "Name",
+                                        sortDirection = Context.Request.Query["sortColumn"] == "Name" && Context.Request.Query["sortDirection"] == "ASC" ? "DESC" : "ASC"
+                                    })" class="text-white text-decoration-none">
+                                        Name
+                                        @if (Context.Request.Query["sortColumn"] == "Name")
+                                        {
+                                            <i class="fas fa-sort-@(Context.Request.Query["sortDirection"] == "ASC" ? "down" : "up") sort-icon"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="fas fa-sort sort-icon"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("Search", "Home", new {
+                                        searchName = Context.Request.Query["searchName"],
+                                        sortColumn = "Age",
+                                        sortDirection = Context.Request.Query["sortColumn"] == "Age" && Context.Request.Query["sortDirection"] == "ASC" ? "DESC" : "ASC"
+                                    })" class="text-white text-decoration-none">
+                                        Age
+                                        @if (Context.Request.Query["sortColumn"] == "Age")
+                                        {
+                                            <i class="fas fa-sort-@(Context.Request.Query["sortDirection"] == "ASC" ? "down" : "up") sort-icon"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="fas fa-sort sort-icon"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="@Url.Action("Search", "Home", new {
+                                        searchName = Context.Request.Query["searchName"],
+                                        sortColumn = "DOJ",
+                                        sortDirection = Context.Request.Query["sortColumn"] == "DOJ" && Context.Request.Query["sortDirection"] == "ASC" ? "DESC" : "ASC"
+                                    })" class="text-white text-decoration-none">
+                                        Date of Joining
+                                        @if (Context.Request.Query["sortColumn"] == "DOJ")
+                                        {
+                                            <i class="fas fa-sort-@(Context.Request.Query["sortDirection"] == "ASC" ? "down" : "up") sort-icon"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="fas fa-sort sort-icon"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var employee in Model)
+                            {
+                                <tr>
+                                    <td>@employee.Id</td>
+                                    <td>@employee.Name</td>
+                                    <td>@employee.Age</td>
+                                    <td>@employee.DOJ?.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <a href="@Url.Action("Edit", "Home", new { id = employee.Id })" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form method="post" action="@Url.Action("Delete", "Home")" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@employee.Id" />
+                                            <button type="submit" class="btn btn-sm btn-danger"
+                                                    onclick="return confirm('Are you sure you want to delete this employee?')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    @{
+                        int currentPage = int.TryParse(Context.Request.Query["page"], out var page) ? page : 1;
+                        int totalEmployees = Model.Count();
+                        int pageLimit = 10;
+                        int totalPages = (int)Math.Ceiling((double)totalEmployees / pageLimit);
+                        int maxPagesToShow = 5;
+                        int startPage = Math.Max(1, currentPage - maxPagesToShow / 2);
+                        int endPage = Math.Min(totalPages, startPage + maxPagesToShow - 1);
+
+                        if (endPage - startPage + 1 < maxPagesToShow)
+                        {
+                            startPage = Math.Max(1, endPage - maxPagesToShow + 1);
+                        }
+
+                        if (currentPage > 1)
+                        {
+                            <a href="@Url.Action("Search", "Home", new {
+                                page = currentPage - 1,
+                                searchName = Context.Request.Query["searchName"],
+                                sortColumn = Context.Request.Query["sortColumn"],
+                                sortDirection = Context.Request.Query["sortDirection"]
+                            })" class="btn btn-outline-primary btn-sm">Previous</a>
+                        }
+
+                        for (int i = startPage; i <= endPage; i++)
+                        {
+                            <a href="@Url.Action("Search", "Home", new {
+                                page = i,
+                                searchName = Context.Request.Query["searchName"],
+                                sortColumn = Context.Request.Query["sortColumn"],
+                                sortDirection = Context.Request.Query["sortDirection"]
+                            })" class="btn @(i == currentPage ? "btn-primary" : "btn-outline-primary") btn-sm">@i</a>
+                        }
+
+                        if (currentPage < totalPages)
+                        {
+                            <a href="@Url.Action("Search", "Home", new {
+                                page = currentPage + 1,
+                                searchName = Context.Request.Query["searchName"],
+                                sortColumn = Context.Request.Query["sortColumn"],
+                                sortDirection = Context.Request.Query["sortDirection"]
+                            })" class="btn btn-outline-primary btn-sm">Next</a>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chatbot UI -->
+    <button id="ai-button">💬</button>
+    <div class="chatbot-container" id="chatbot">
+        <div class="chatbot-header">
+            <h3>Chatbot</h3>
+            <button id="close-chatbot">✖</button>
+        </div>
+        <div class="chatbot-body" id="chatbot-body">
+            <div class="chatbot-message bot">
+                <span class="avatar">🤖</span>
+                <div class="message">
+                    Hey there 👋<br />
+                    I am ECHO, your Enhanced Chat Helper for Operations. I'm designed to assist with various queries, provide guidance, and respond politely. How can I help you today?
+                </div>
+            </div>
+            <div class="typing-indicator" id="typing-indicator">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
+        <div class="chatbot-footer">
+            <input type="text" id="user-input" placeholder="Type a message..." />
+            <button id="send-button">➤</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const aiButton = document.getElementById('ai-button');
+        const chatbot = document.getElementById('chatbot');
+        const closeButton = document.getElementById('close-chatbot');
+        const sendButton = document.getElementById('send-button');
+        const userInputField = document.getElementById('user-input');
+        const chatbotBody = document.getElementById('chatbot-body');
+        const typingIndicator = document.getElementById('typing-indicator');
+
+        // Toggle chatbot visibility
+        aiButton.addEventListener('click', () => {
+            chatbot.style.display = (chatbot.style.display === 'flex') ? 'none' : 'flex';
+        });
+
+        closeButton.addEventListener('click', () => {
+            chatbot.style.display = 'none';
+        });
+
+        // Handle user input
+        const handleUserInput = async () => {
+            const userInput = userInputField.value.trim();
+            if (userInput) {
+                appendMessage('You', userInput);
+                userInputField.value = '';
+                typingIndicator.style.display = 'flex';
+
+                try {
+                    const response = await getAiResponse(userInput);
+                    typingIndicator.style.display = 'none';
+                    appendMessage('Bot', response.response, response.tableData, response.downloadLink);
+                } catch (error) {
+                    typingIndicator.style.display = 'none';
+                    appendMessage('Bot', 'Sorry, I encountered an error while processing your request.');
+                    console.error('Error:', error);
+                }
+            }
+        };
+
+        sendButton.addEventListener('click', handleUserInput);
+        userInputField.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                handleUserInput();
+            }
+        });
+
+        // Function to append messages to chat
+        function appendMessage(sender, message, tableData = null, downloadLink = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('chatbot-message', sender.toLowerCase());
+
+            const avatarSpan = document.createElement('span');
+            avatarSpan.classList.add('avatar');
+            avatarSpan.textContent = sender === 'You' ? '👤' : '🤖';
+
+            const messageDivText = document.createElement('div');
+            messageDivText.classList.add('message');
+
+            // Add text message
+            if (message) {
+                const textParagraph = document.createElement('p');
+                textParagraph.style.margin = '0 0 8px 0';
+                textParagraph.textContent = message;
+                messageDivText.appendChild(textParagraph);
+            }
+
+            // Add download link if present
+            if (downloadLink) {
+                const linkElement = document.createElement('a');
+                linkElement.href = downloadLink;
+                linkElement.textContent = 'Download File';
+                linkElement.classList.add('download-link');
+                linkElement.download = true;
+                linkElement.target = '_blank';
+                messageDivText.appendChild(linkElement);
+            }
+
+            // Add table if present
+            if (tableData && Array.isArray(tableData) && tableData.length > 0) {
+                const tableWrapper = document.createElement('div');
+                tableWrapper.classList.add('table-wrapper');
+                tableWrapper.innerHTML = createTableHTML(tableData);
+                messageDivText.appendChild(tableWrapper);
+            }
+
+            messageDiv.appendChild(avatarSpan);
+            messageDiv.appendChild(messageDivText);
+            chatbotBody.appendChild(messageDiv);
+
+            requestAnimationFrame(() => {
+                chatbotBody.scrollTop = chatbotBody.scrollHeight;
+            });
+        }
+
+        // Function to create HTML table
+        function createTableHTML(data) {
+            if (!data || data.length === 0) return '';
+
+            const headers = Object.keys(data[0]);
+            return `
+                <div class="table-container">
+                    <div class="table-responsive">
+                        <table class="chat-table table table-sm">
+                            <thead>
+                                <tr>
+                                    ${headers.map(header => `
+                                        <th scope="col">${formatHeader(header)}</th>
+                                    `).join('')}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.map(row => `
+                                    <tr>
+                                        ${headers.map(header => `
+                                            <td>${formatCellData(row[header], header)}</td>
+                                        `).join('')}
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Helper functions
+        function formatHeader(header) {
+            return header
+                .split(/(?=[A-Z])/)
+                .join(' ')
+                .replace(/^\w/, c => c.toUpperCase());
+        }
+
+        function formatCellData(data, header) {
+            if (data === null || data === undefined) return '-';
+            if (header.toLowerCase().includes('date')) {
+                return new Date(data).toLocaleDateString('en-GB');
+            }
+            return data;
+        }
+
+        // Function to get AI response
+        async function getAiResponse(userInput) {
+            try {
+                const response = await fetch('/Chat/SendMessage', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text: userInput })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return {
+                    response: data.response,
+                    tableData: data.hasTable ? data.tableData : null,
+                    downloadLink: data.downloadLink
+                };
+            } catch (error) {
+                console.error('Error:', error);
+                throw error;
+            }
+        }
+    </script>
+</body>
+</html>

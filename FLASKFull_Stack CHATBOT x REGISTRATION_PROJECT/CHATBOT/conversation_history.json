@@ -1,0 +1,20 @@
+{
+    "b32459ba-b1c8-477e-988e-25d35cc4b202": {
+        "details": [
+            "hi"
+        ],
+        "history": [
+            "User: hi",
+            "Chatbot: Hi there! How can I help you today?\n"
+        ]
+    },
+    "a24320d2-8a81-4562-8272-26723a8e1dea": {
+        "details": [
+            "hi"
+        ],
+        "history": [
+            "User: hi",
+            "Chatbot: Hi there! How can I help you today?\n"
+        ]
+    }
+}

@@ -1,0 +1,79 @@
+﻿@model WebappTASK2.Models.Employee
+
+@{
+    ViewData["Title"] = "Create Employee";
+}
+
+<h1>Create Employee</h1>
+
+<form id="createEmployeeForm">
+    <div class="form-group">
+        <label for="Name">Name</label>
+        <input type="text" class="form-control" id="Name" name="Name" />
+    </div>
+    <div class="form-group">
+        <label for="Gender">Gender</label>
+        <input type="text" class="form-control" id="Gender" name="Gender" />
+    </div>
+    <div class="form-group">
+        <label for="Age">Age</label>
+        <input type="number" class="form-control" id="Age" name="Age" />
+    </div>
+    <div class="form-group">
+        <label for="Designation">Designation</label>
+        <input type="text" class="form-control" id="Designation" name="Designation" />
+    </div>
+    <div class="form-group">
+        <label for="City">City</label>
+        <input type="text" class="form-control" id="City" name="City" />
+    </div>
+    <div class="form-group">
+        <label for="Date_Of_Joining">Date of Joining</label>
+        <input type="datetime-local" class="form-control" id="Date_Of_Joining" name="Date_Of_Joining" />
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+<div id="employeesList"></div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Handle form submission with AJAX
+            $("#createEmployeeForm").submit(function (event) {
+                event.preventDefault();  // Prevent form from submitting the default way
+
+                var formData = $(this).serialize();  // Serialize form data
+
+                // Make the AJAX request
+                $.ajax({
+                    url: '@Url.Action("Create", "Home")',  // URL of the Create action
+                    type: 'POST',
+                    data: formData,
+                    success: function (data) {
+                        // On success, reload the employee list and clear the form
+                        loadEmployees();
+                        $('#createEmployeeForm')[0].reset();  // Reset the form
+                    },
+                    error: function () {
+                        alert("An error occurred while adding the employee.");
+                    }
+                });
+            });
+
+            // Function to load the updated employee list
+            function loadEmployees() {
+                $.ajax({
+                    url: '@Url.Action("Index", "Home")',  // URL of the Index action
+                    type: 'GET',
+                    success: function (data) {
+                        // Update the employee list
+                        $('#employeesList').html(data);
+                    }
+                });
+            }
+        });
+    </script>
+}
